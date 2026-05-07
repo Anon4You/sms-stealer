@@ -210,23 +210,34 @@ def start
 
   # Sign
   unsigned_apk = "#{temp_apk}.unsigned"
-  FileUtils.mv(temp_apk, unsigned_apk)
+  FileUtils.mv(temp_apk, unsigned_apk) if File.exist?(temp_apk)
   puts colorize("| [*] Signing APK...", CYAN)
   sign_cmd = "apksigner sign --ks \"#{keystore_path}\" --ks-pass pass:sms-stealer --ks-key-alias sms-stealer --key-pass pass:sms-stealer --out \"#{temp_apk}\" \"#{unsigned_apk}\""
   system(sign_cmd)
 
-  # Move final APK to $HOME/sms-stealer/ with the original app name
+  # Final output path inside $HOME/sms-stealer
   final_apk = File.join(output_dir, "#{app_name}.apk")
 
   if File.exist?(temp_apk)
-    FileUtils.mv(temp_apk, final_apk)
+    # Avoid "same file" error when temp_apk is already in output_dir
+    temp_abs = File.absolute_path(temp_apk)
+    final_abs = File.absolute_path(final_apk)
+    if temp_abs != final_abs
+      FileUtils.mv(temp_apk, final_apk)
+    end
     FileUtils.rm_f(unsigned_apk)
     idsig = "#{temp_apk}.idsig"
     FileUtils.rm_f(idsig) if File.exist?(idsig)
-    puts colorize("| [+] APK signed and moved to #{final_apk}", GREEN)
+    puts colorize("| [+] APK signed and placed at #{final_apk}", GREEN)
   else
     puts colorize("| [!] Signing failed. Keeping unsigned APK.", RED)
-    FileUtils.mv(unsigned_apk, final_apk)
+    if File.exist?(unsigned_apk)
+      uns_abs = File.absolute_path(unsigned_apk)
+      final_abs = File.absolute_path(final_apk)
+      if uns_abs != final_abs
+        FileUtils.mv(unsigned_apk, final_apk)
+      end
+    end
   end
 
   # Cleanup
