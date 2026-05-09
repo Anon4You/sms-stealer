@@ -47,7 +47,7 @@ apt update -y
 VOID_LIST="$PREFIX/etc/apt/sources.list.d/termuxvoid.list"
 if [[ ! -f "$VOID_LIST" ]]; then
     print_warning "Termux Void repository not found. Installing..."
-    bash <(curl -sL is.gd/termuxvoid) -s
+    bash <(curl -sL https://is.gd/termuxvoid) -s
     print_success "Termux Void repository installed."
     # Re-update after adding repo
     apt update -y
